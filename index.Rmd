@@ -16,11 +16,11 @@ Sys.setlocale("LC_TIME", "IND")
 library(tidyverse)
 library(readxl)
 
-db <- read_excel("G:/My Drive/#PMB/2020/02_SBMPTN/Dashboard/20sbm/sbmptn.xlsx", sheet = "Sheet1")
+db <- read_excel("G:/My Drive/#PMB/2020/03_SMMPTN/Dashboard/smmptn_20.xlsx", sheet = "Sheet1")
 
-data <- db %>%
-  group_by(id_prodi) %>%
-  summarize(peminat = max(peminat))
+#data <- db %>%
+#  group_by(id_prodi) %>%
+#  summarize(peminat = max(peminat))
 ```
 
 Ringkasan
@@ -34,7 +34,8 @@ Row
 ```{r}
 
 valueBox(
-  value = paste(format(sum(data$peminat), big.mark = " "), "", sep = " "),
+  #value = paste(format(sum(data$peminat), big.mark = " "), "", sep = " "),
+  value = paste(format(sum(5000), big.mark = " "), "", sep = " "),
   caption = "Pendaftar di Untirta",
   icon = "fas fa-clipboard-check",
   color = "black"
@@ -57,7 +58,7 @@ valueBox(
 
 ```{r}
 data <- db %>%
-  filter(jk == "L")
+  filter(JK == "L")
 valueBox(
   value = paste(format(nrow(data), big.mark = " "), " (", 
                 round(nrow(data)/nrow(db)*100, 0), "%)",
@@ -71,7 +72,7 @@ valueBox(
 ### perempuan {.value-box}
 
 ```{r}
-data <- filter(db, jk == "P")
+data <- filter(db, JK == "P")
 valueBox(
   value = paste(format(nrow(data), big.mark = " "), " (", 
                 round(nrow(data)/nrow(db)*100,0), "%)",
@@ -82,19 +83,6 @@ valueBox(
 )
 ```
 
-### kip {.value-box}
-
-```{r}
-data <- filter(db, KIP == "KIP")
-valueBox(
-  value = paste(format(nrow(data), big.mark = " "), " (", 
-                round(nrow(data)/nrow(db)*100, 0), "%)",
-                sep = ""),
-  caption = "Pendaftar KIP",
-  icon = "fas fa-hand-holding-usd",
-  color = "grey"
-)
-```
 
 Row
 ---
@@ -139,9 +127,9 @@ Row
 library(plotly)
 library(shiny)
 data <- db %>%
-  group_by(jk, fakultas) %>%
+  group_by(JK, fakultas) %>%
   summarize(total = n()) %>%
-  pivot_wider(names_from = jk, values_from = total)
+  pivot_wider(names_from = JK, values_from = total)
 names(data) <- c("Fakultas", "Laki-Laki", "Perempuan")
 data$Fakultas <- c("Hukum", "FKIP", "Teknik", "Pertanian", "FEB", "FISIP", "Kedokteran")
 ### agar sesuai urutan dibuat faktor dengan level yang berurutan
@@ -173,10 +161,10 @@ Row
 
 ```{r}
 data <- db %>%
-  group_by(kategori_sekolah) %>%
+  group_by(tipe_sekolah) %>%
   summarize(banyak = n())
 
-div(plot_ly(type = "pie", labels = data$kategori_sekolah, values = data$banyak,
+div(plot_ly(type = "pie", labels = data$tipe_sekolah, values = data$banyak,
         textinfo = "label+percent",
         insidetextorientation = "radial"), align = "center")
 ```
@@ -185,10 +173,10 @@ div(plot_ly(type = "pie", labels = data$kategori_sekolah, values = data$banyak,
 
 ```{r}
 data <- db %>%
-  group_by(jenis_sekolah) %>%
+  group_by(jurusan_sekolah) %>%
   summarize(banyak = n())
 
-div(plot_ly(type = "pie", labels = data$jenis_sekolah, values = data$banyak,
+div(plot_ly(type = "pie", labels = data$jurusan_sekolah, values = data$banyak,
         textinfo = "label+percent",
         insidetextorientation = "radial"), align = "center")
 ```
@@ -200,10 +188,10 @@ Row
 
 ```{r}
 data <- db %>%
-  group_by(prop_sekolah, jk) %>%
+  group_by(provinsi, JK) %>%
   summarize(tot = n())
 data <- data %>%
-  pivot_wider(names_from = jk, values_from = tot)
+  pivot_wider(names_from = JK, values_from = tot)
 data[is.na(data)] <- 0
 data <- adorn_totals(data, where = "col", name = "JML")
 data <- arrange(data, desc(JML))
@@ -219,13 +207,13 @@ kable(data) %>%
 
 ```{r}
 data <- db %>%
-  group_by(pend, jk) %>%
+  group_by(pend_ortu, JK) %>%
   summarize(tot = n())
 data <- data %>%
-  pivot_wider(names_from = jk, values_from = tot)
+  pivot_wider(names_from = JK, values_from = tot)
 data[is.na(data)] <- 0
 names(data) <- c("Pendidikan", "Laki-Laki", "Perempuan")
-data$Pendidikan <- c("Tidak Ada Data", "Tidak Sekolah", "Tidak Tamat SD", "SD", "SLTP", "SLTA", "D1", "D2", "D3", "D4", "S1", "S2", "S3")
+data$Pendidikan <- c("Tidak Sekolah", "Tidak Tamat SD", "SD", "SLTP", "SLTA", "D1", "D2", "D3", "D4", "S1", "S2", "S3")
 data <- adorn_totals(data, where = c("col", "row"), name = "JML")
 
 kable(data) %>%
@@ -244,17 +232,15 @@ row
 
 ```{r}
 data <- db %>%
-  group_by(fakultas, program_studi) %>%
-  summarize(peminat = max(peminat),
-            lulus = n(),
+  group_by(fakultas, prodi) %>%
+  summarize(lulus = n(),
             sudah = sum(na.omit(registrasi == "registrasi")),
             belum = lulus - sudah,
             diterima = sum(na.omit(diterima == "diterima")))
 
 data <- data %>%
   group_by(fakultas) %>%
-  summarize(peminat = sum(peminat),
-            lulus = sum(lulus),
+  summarize(lulus = sum(lulus),
             sudah = sum(sudah),
             belum = sum(belum),
             diterima = sum(diterima))
@@ -280,12 +266,12 @@ plot_ly(data, x = ~fakultas, y = ~lulus, type = "bar", name = "Total") %>%
 data <- adorn_totals(data, where = "row", name = "Total")
 data$pers_sudah <- round(data$sudah / data$lulus * 100, 0)
 data$pers_belum <- round(data$belum / data$lulus * 100, 0)
-data <- data[,c(1:5,7:8,6)]
-names(data) <- c("Fakultas", "Peminat","Lulus", "Sudah", "Belum", "Sudah (%)", "Belum (%)", "Diterima")
+data <- data[,c(1:4,6:7,5)]
+names(data) <- c("Fakultas", "Lulus", "Sudah", "Belum", "Sudah (%)", "Belum (%)", "Diterima")
 kable(data) %>%
   kable_styling(bootstrap_options = "striped", full_width = F,
                 latex_options = "scale_down") %>%
-  add_header_above(c(" " = 3, "Registrasi" = 4," " = 1))
+  add_header_above(c(" " = 2, "Registrasi" = 4," " = 1))
 
 ```
 
@@ -296,9 +282,8 @@ row
 
 ```{r}
 data <- db %>%
-  group_by(fakultas, program_studi) %>%
-  summarize(peminat = max(peminat),
-            lulus = n(),
+  group_by(fakultas, prodi) %>%
+  summarize(lulus = n(),
             sudah = sum(na.omit(registrasi == "registrasi")),
             belum = lulus - sudah,
             diterima = sum(na.omit(diterima == "diterima")))
@@ -308,20 +293,20 @@ data <- adorn_totals(data,where = "row", name = "Total")
 data$pers_sudah <- round(data$sudah / data$lulus * 100, 0)
 data$pers_belum <- round(data$belum / data$lulus * 100, 0)
 
-data <- data[,c(1:5,7, 8, 6)]
+data <- data[,c(1:4, 6, 7, 5)]
 
-names(data) <- c("Fakultas/Program Studi", "Peminat","Lulus", "Sudah", "Belum", "Sudah (%)", "Belum (%)", "Diterima")
+names(data) <- c("Fakultas/Program Studi", "Lulus", "Sudah", "Belum", "Sudah (%)", "Belum (%)", "Diterima")
 kable(data, row.names = F) %>%
   kable_styling(bootstrap_options = "striped", full_width = F,
                 latex_options = "scale_down") %>%
-  add_header_above(c(" " = 3, "Registrasi" = 4, " " = 1)) %>%
+  add_header_above(c(" " = 2, "Registrasi" = 4, " " = 1)) %>%
   pack_rows("Hukum", 1, 1, label_row_css = "background-color: #666; color: #fff;") %>%
   pack_rows("Keguruan dan Ilmu Pendidikan", 2, 19, label_row_css = "background-color: #666; color: #fff;") %>%
   pack_rows("Teknik", 20, 25, label_row_css = "background-color: #666; color: #fff;") %>%
   pack_rows("Pertanian", 26, 29, label_row_css = "background-color: #666; color: #fff;") %>%
   pack_rows("Ekonomi dan Bisnis", 30, 33, label_row_css = "background-color: #666; color: #fff;") %>%
   pack_rows("Ilmu Sosial dan Ilmu Politik", 34, 36, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Kedokteran", 37, 39, label_row_css = "background-color: #666; color: #fff;")
+  pack_rows("Kedokteran", 37, 40, label_row_css = "background-color: #666; color: #fff;")
 
 
 ```
@@ -336,7 +321,7 @@ Camaba Registrasi
 # format waktu
 data <- db %>%
   filter(registrasi == "registrasi") %>%
-  select(no_peserta, nama_siswa, jk, program_studi)
+  select(no_peserta, nama, JK, prodi)
 names(data) <- c("No Pendaftaran", "Nama", "Jenis Kelamin", "Program Studi")
 DT::datatable(data,
               rownames = F)#,
@@ -353,7 +338,7 @@ Mahasiswa Baru
 # format waktu
 data <- db %>%
   filter(diterima == "diterima") %>%
-  select(no_peserta, nama_siswa, jk, program_studi)
+  select(no_peserta, nama, JK, prodi)
 names(data) <- c("No Pendaftaran", "Nama", "Jenis Kelamin", "Program Studi")
 DT::datatable(data,
               rownames = F)#,
