@@ -48,7 +48,7 @@ valueBox(
 
 valueBox(
   value = paste(format(nrow(db), big.mark = " "), "", sep = " "),
-  caption = "Lulus SBMPTN",
+  caption = "Lulus SMMPTN",
   icon = "fas fa-clipboard-check",
   color = "purple"
 )
@@ -331,7 +331,7 @@ DT::datatable(data,
 Mahasiswa Baru
 ===
 
-### Berikut adalah daftar nama mahasiswa baru (**sudah mendapatkan NIM**) Universitas Sultan Ageng Tirtayasa jalur SBMPTN 2020 sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
+### Berikut adalah daftar nama mahasiswa baru (**sudah mendapatkan NIM**) Universitas Sultan Ageng Tirtayasa jalur SMMPTN 2020 sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
 
 ```{r}
 # `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%X")`
